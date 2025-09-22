@@ -4,7 +4,7 @@
 // Requisitos: TailwindCSS instalado en el proyecto Vite.
 
 import React, { useState } from 'react'
-import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 
 export default function KoaLanding() {
   const [openLogin, setOpenLogin] = useState(false);
@@ -38,12 +38,12 @@ export default function KoaLanding() {
             </a>
           </nav>
 
-          <button
-            onClick={() => setOpenLogin(true)}
+          <Link
+            to={"/login"}
             className="ml-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 shadow-sm bg-white hover:shadow-md text-sm"
           >
             Iniciar sesión
-          </button>
+          </Link>
         </div>
       </header>
 

@@ -1,136 +1,143 @@
-// src/AdminDashboard.jsx
+// src/modulos/users/DashAdmin.jsx
+
 import { useState } from "react";
 import {
-  Home,
-  Users,
-  FileText,
-  Settings,
-  LogOut,
-  Menu,
-  X,
+  Home, Users, BarChart2, Search, HelpCircle, 
+  Settings, Bell, User, LogOut
 } from "lucide-react";
+import LogoReact from '../../assets/react.svg';
 
-const navItems = [
-  { name: "Inicio", icon: Home },
-  { name: "Residentes", icon: Users },
-  { name: "Reportes", icon: FileText },
-  { name: "Configuración", icon: Settings },
+// --- Módulos del Dashboard ---
+// NOTA: En una aplicación real, cada uno de estos componentes debería estar en su propio archivo
+// y ser importado aquí. Por ejemplo: import Inicio from './modulos/Inicio';
+
+const Inicio = () => (
+  <section aria-labelledby="inicio-title">
+    <h2 id="inicio-title" className="text-2xl font-bold text-gray-800 mb-4">Dashboard de Inicio</h2>
+    <div className="p-6 bg-white rounded-xl shadow-md">
+      <p>Contenido principal del dashboard de bienvenida.</p>
+    </div>
+  </section>
+);
+
+const Residentes = () => (
+  <section aria-labelledby="residentes-title">
+    <h2 id="residentes-title" className="text-2xl font-bold text-gray-800 mb-4">Gestión de Residentes</h2>
+    <div className="p-6 bg-white rounded-xl shadow-md">
+      <p>Aquí se mostrará la tabla o lista para gestionar a los residentes.</p>
+    </div>
+  </section>
+);
+
+const Reportes = () => (
+  <section aria-labelledby="reportes-title">
+    <h2 id="reportes-title" className="text-2xl font-bold text-gray-800 mb-4">Reportes y Estadísticas</h2>
+    <div className="p-6 bg-white rounded-xl shadow-md">
+      <p>Aquí se mostrarán los gráficos y datos de los reportes.</p>
+    </div>
+  </section>
+);
+
+// 1. Array de configuración del sidebar.
+// Lo movemos fuera del componente para que no se re-declare en cada renderizado.
+const sidebarItems = [
+  { name: "Inicio", icon: <Home size={22} />, component: <Inicio /> },
+  { name: "Residentes", icon: <Users size={22} />, component: <Residentes /> },
+  { name: "Reportes", icon: <BarChart2 size={22} />, component: <Reportes /> },
 ];
 
-export default function AdminDashboard() {
-  const [open, setOpen] = useState(false);
+
+export default function DashAdmin() {
+  const [activeItem, setActiveItem] = useState(sidebarItems[0]);
 
   return (
-    <div className="flex flex-col h-screen">
-      {/* Header */}
-      <header className="bg-white shadow">
-        {/* Navbar grande */}
-        <nav className="hidden md:flex max-w-7xl mx-auto px-6 py-4 justify-between items-center">
-          <h1 className="text-xl font-bold text-indigo-600">Koa Admin</h1>
-          <ul className="flex space-x-6">
-            {navItems.map((item) => (
-              <li key={item.name}>
-                <a
-                  href="#"
-                  className="flex items-center space-x-2 hover:text-indigo-600"
-                >
-                  <item.icon size={18} />
-                  <span>{item.name}</span>
-                </a>
-              </li>
-            ))}
-            <li>
-              <a
-                href="#"
-                className="flex items-center space-x-2 text-red-500 hover:text-red-700"
-              >
-                <LogOut size={18} />
-                <span>Salir</span>
-              </a>
-            </li>
-          </ul>
-        </nav>
-
-        {/* Navbar móvil */}
-        <div className="md:hidden flex items-center justify-between px-6 py-4">
-          <div className="flex items-center space-x-3">
-            <button
-              aria-label="Abrir menú"
-              onClick={() => setOpen(true)}
-              className="p-1"
-            >
-              <Menu size={24} />
-            </button>
-            <h1 className="text-xl font-bold text-indigo-600">Koa Admin</h1>
-          </div>
-        </div>
-      </header>
-
-      {/* Sidebar móvil como aside */}
-      {open && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-40">
-          <aside
-            className="fixed top-0 left-0 w-64 h-full bg-white shadow-lg p-6 z-50"
-            aria-label="Menú de navegación"
-          >
-            {/* Botón cerrar */}
-            <button
-              className="absolute top-4 right-4"
-              onClick={() => setOpen(false)}
-              aria-label="Cerrar menú"
-            >
-              <X size={24} />
-            </button>
-
-            <ul className="mt-10 space-y-6">
-              {navItems.map((item) => (
-                <li key={item.name}>
-                  <a
-                    href="#"
-                    className="flex items-center space-x-3 hover:text-indigo-600"
-                  >
-                    <item.icon size={20} />
-                    <span>{item.name}</span>
-                  </a>
-                </li>
-              ))}
-              <li>
-                <a
-                  href="#"
-                  className="flex items-center space-x-3 text-red-500 hover:text-red-700"
-                >
-                  <LogOut size={20} />
-                  <span>Salir</span>
-                </a>
-              </li>
-            </ul>
-          </aside>
-        </div>
-      )}
-
-      {/* Main */}
-      <main className="flex-1 bg-gray-50 p-6 overflow-y-auto">
-        <header className="mb-6">
-          <h2 className="text-2xl font-semibold">Bienvenido Administrador</h2>
+    <div className="flex h-screen bg-gray-100 font-sans">
+      
+      {/* Sidebar: Menú de navegación principal */}
+      <aside 
+        className="w-20 md:w-60 bg-indigo-600 text-white flex flex-col shadow-lg transition-all duration-300"
+        aria-label="Menú lateral principal"
+      >
+        {/* Logo */}
+        <header className="flex items-center justify-center gap-2 px-4 py-6 border-b border-indigo-700">
+          <img src="LogoReact" alt="Logo Koa" className="h-9 w-9" />
+          <span className="hidden md:block font-bold text-xl text-white">Koa</span>
         </header>
 
-        <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <article className="bg-white p-6 rounded-xl shadow">
-            📊 Reporte de ocupación
-          </article>
-          <article className="bg-white p-6 rounded-xl shadow">
-            📋 Solicitudes pendientes
-          </article>
-          <article className="bg-white p-6 rounded-xl shadow">
-            🔔 Notificaciones recientes
-          </article>
-        </section>
-      </main>
+        {/* Navegación principal */}
+        <nav className="flex flex-col gap-2 p-2 flex-1">
+          {sidebarItems.map((item) => (
+            <button
+              key={item.name}
+              title={item.name}
+              className={`flex items-center justify-center md:justify-start gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors duration-200 ${
+                activeItem.name === item.name 
+                  ? "bg-amber-500 text-white shadow-md" 
+                  : "text-indigo-200 hover:bg-indigo-700 hover:text-white"
+              }`}
+              onClick={() => setActiveItem(item)}
+              aria-current={activeItem.name === item.name ? "page" : undefined}
+            >
+              {item.icon}
+              <span className="hidden md:block">{item.name}</span>
+            </button>
+          ))}
+        </nav>
 
-      {/* Footer */}
-      <footer className="bg-white border-t py-4 text-center text-sm text-gray-500">
-        © {new Date().getFullYear()} Koa. Todos los derechos reservados.
-      </footer>
+        {/* Footer del Sidebar (ej. botón de salir) */}
+        <footer className="p-2">
+          <button
+            title="Cerrar Sesión"
+            className="w-full flex items-center justify-center md:justify-start gap-3 rounded-md px-3 py-3 text-sm font-medium text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors duration-200"
+          >
+            <LogOut size={22} />
+            <span className="hidden md:block">Cerrar Sesión</span>
+          </button>
+        </footer>
+      </aside>
+
+      {/* Contenedor del contenido principal */}
+      <div className="flex-1 flex flex-col">
+        
+        {/* Header superior */}
+        <header className="sticky top-0 z-10 w-full border-b bg-white shadow-sm px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Título del módulo activo */}
+            <h1 className="text-2xl font-bold text-gray-800">
+              {activeItem.name}
+            </h1>
+            
+            <div className="flex items-center gap-6">
+              {/* Búsqueda */}
+              <div className="relative hidden lg:block">
+                <label htmlFor="search-app" className="sr-only">Buscar</label>
+                <input
+                  id="search-app"
+                  type="search"
+                  placeholder="Buscar en la app..."
+                  className="w-full max-w-xs rounded-full border border-gray-300 px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              </div>
+
+              {/* Acciones de Usuario y Notificaciones */}
+              <div className="flex items-center space-x-4 text-gray-500">
+                <button aria-label="Ayuda" className="p-2 rounded-full hover:bg-gray-100 transition-colors"><HelpCircle size={22} /></button>
+                <button aria-label="Configuración" className="p-2 rounded-full hover:bg-gray-100 transition-colors"><Settings size={22} /></button>
+                <button aria-label="Notificaciones" className="p-2 rounded-full hover:bg-gray-100 transition-colors"><Bell size={22} /></button>
+                <button aria-label="Perfil de usuario" className="p-1 rounded-full hover:ring-2 hover:ring-indigo-400 transition-all">
+                  <User className="h-8 w-8 rounded-full bg-indigo-200 text-indigo-600 p-1" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Área de contenido dinámico */}
+        <main className="p-6 lg:p-8 flex-1 overflow-y-auto" role="main">
+          {activeItem.component}
+        </main>
+      </div>
     </div>
   );
 }
