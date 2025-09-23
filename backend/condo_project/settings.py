@@ -9,18 +9,17 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-import os
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-gk_+iw_+krf9#q)(yo6r1ear1l+_%)6(q($96z00qgf!avol%^'
+SECRET_KEY = 'django-insecure-e#i7nk8t($61k3nqkmj61w!&x^1uf6or89_ph!dkbbku9)hq-n'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -46,13 +45,16 @@ INSTALLED_APPS = [
     # Apps locales
     'apps.core',
     'apps.users',
+    'apps.users.apps.UsersConfig',  # para crear grupos por defecto
     'apps.finanzas',
     'apps.comunicaciones',
     'apps.seguridad',
-    'apps.servicios',
+    'apps.facilidades',
     'apps.reportes',
     'apps.ia',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True  # sólo para desarrollo; en producción configura CORS_ALLOWED_ORIGINS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -63,9 +65,24 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-] 
+]
 
-CORS_ALLOW_ALL_ORIGINS = True  # Permitir todas las solicitudes CORS (solo para desarrollo)
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
+}
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+}
 
 ROOT_URLCONF = 'condo_project.urls'
 
@@ -96,20 +113,14 @@ DATABASES = {
         'NAME': 'condominio',
         'USER': 'postgres',
         'PASSWORD': 'Ed26Me24',
-        'HOST': 'localhost', # o la IP del servidor de la base de datos
-        'PORT': '5432', # el puerto de PostgreSQL por defecto
-        'OPTIONS': { 'client_encoding': 'UTF8' },
+        'HOST': 'localhost',
+        'PORT': '5432',
+        'OPTIONS': {
+            'client_encoding': 'UTF8',
+        }
     }
 }
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',  # por defecto protege todos los endpoints
-    ),
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

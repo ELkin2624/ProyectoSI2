@@ -7,10 +7,16 @@ import {
 } from "lucide-react";
 import LogoReact from '../../assets/react.svg';
 
+
+const handleLogout = () => {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  window.location.href = '/login'; // o useNavigate para redirigir
+};
+
 // --- Módulos del Dashboard ---
 // NOTA: En una aplicación real, cada uno de estos componentes debería estar en su propio archivo
 // y ser importado aquí. Por ejemplo: import Inicio from './modulos/Inicio';
-
 const Inicio = () => (
   <section aria-labelledby="inicio-title">
     <h2 id="inicio-title" className="text-2xl font-bold text-gray-800 mb-4">Dashboard de Inicio</h2>
@@ -60,7 +66,7 @@ export default function DashAdmin() {
       >
         {/* Logo */}
         <header className="flex items-center justify-center gap-2 px-4 py-6 border-b border-indigo-700">
-          <img src="LogoReact" alt="Logo Koa" className="h-9 w-9" />
+          <img src={LogoReact} alt="Logo Koa" className="h-9 w-9" />
           <span className="hidden md:block font-bold text-xl text-white">Koa</span>
         </header>
 
@@ -87,6 +93,7 @@ export default function DashAdmin() {
         {/* Footer del Sidebar (ej. botón de salir) */}
         <footer className="p-2">
           <button
+            onClick={handleLogout}
             title="Cerrar Sesión"
             className="w-full flex items-center justify-center md:justify-start gap-3 rounded-md px-3 py-3 text-sm font-medium text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors duration-200"
           >

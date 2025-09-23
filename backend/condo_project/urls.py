@@ -16,12 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+
 from rest_framework import routers
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework.permissions import AllowAny
-
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -35,19 +34,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('apps.users.urls')),
-    
-    # JWT Auth
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    
-   # path('api/finance/', include('apps.finance.urls')),
-    #path('api/communications/', include('apps.communications.urls')),
-    #path('api/security/', include('apps.security.urls')),
-    #path('api/facilities/', include('apps.facilities.urls')),
-    #path('api/reports/', include('apps.reports.urls')),
-    #path('api/automation/', include('apps.automation.urls')),
-
-    # Documentación Swagger
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+
+    path('api/', include('apps.users.urls')),
 ]

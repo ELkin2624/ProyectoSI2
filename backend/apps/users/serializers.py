@@ -1,20 +1,20 @@
-from rest_framework import serializers
 from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password
+from rest_framework import serializers
+from .models import Profile
 
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    role = serializers.CharField(source="profile.role", read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'is_active', 'is_staff']
+        fields = ['id', 'username', 'email', 'role']
+
+class RegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["username", "email", "password"]
+        extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
-        validated_data['password'] = make_password(validated_data['password'])
-        return super().create(validated_data)
-
-    def update(self, instance, validated_data):
-        password = validated_data.pop('password', None)
-        if password:
-            instance.password = make_password(password)
-        return super().update(instance, validated_data)
+        user = User.objects.create_user(**validated_data)
+        return user
