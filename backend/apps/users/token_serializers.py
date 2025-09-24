@@ -1,7 +1,5 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from rest_framework import serializers
 
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = 'email'
@@ -26,12 +24,16 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        # claims opcionales
-        token['role'] = getattr(user.profile, 'role', '')
+        try:
+            token['role'] = getattr(user.profile, 'role', '')
+        except Exception:
+            token['role'] = ''
         return token
 
     def validate(self, attrs):
         data = super().validate(attrs)
-        data['role'] = getattr(self.user.profile, 'role', '')
-        # opcional: data['groups'] = list(self.user.groups.values_list('name', flat=True))
+        try:
+            data['role'] = getattr(self.user.profile, 'role', '')
+        except Exception:
+            data['role'] = ''
         return data

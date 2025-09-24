@@ -2,18 +2,25 @@ from django.urls import path, include
 from rest_framework import routers
 from .views import RegisterView, UserViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .token_serializers import EmailTokenObtainPairSerializer, MyTokenObtainPairSerializer
+from .token_serializers import MyTokenObtainPairSerializer, EmailTokenObtainPairSerializer
+
+# Views que usan tus serializers custom
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+
+# Si quieres soportar login por email también:
+class EmailTokenObtainPairView(TokenObtainPairView):
+    serializer_class = EmailTokenObtainPairSerializer
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
 
-#class MyTokenObtainPairView(TokenObtainPairView):
- #   serializer_class = EmailTokenObtainPairSerializer
-
 urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='auth_register'),
-    path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # endpoint de login (username)
+    path('auth/login/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # endpoint alternativo de login por email (opcional)
+    path('auth/login-by-email/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair_email'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-        path("api/token/", MyTokenObtainPairSerializer.as_view(), name="token_obtain_pair"),
     path('', include(router.urls)),
 ]

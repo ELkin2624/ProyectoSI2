@@ -1,56 +1,89 @@
 from django.shortcuts import render
 
 # Create your views here.
-from rest_framework import viewsets, status, permissions
+from rest_framework import viewsets, status, permissions, generics, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User, Group
 from .serializers import UserSerializer, RegisterSerializer
+from django_filters.rest_framework import DjangoFilterBackend
+from .serializers import UserSerializer, AdminUserSerializer
+from .models import Profile
 
 # Registrar usuarios (público)
 class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
+    """
+    Registro público: crea User + Profile (por el serializer) y devuelve tokens JWT + role.
+    """
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        # Generar tokens JWT para el usuario creado
+        refresh = RefreshToken.for_user(user)
+        access = str(refresh.access_token)
+
+        # obtener role de manera segura
+        try:
+            role = getattr(user.profile, 'role', '')
+        except Exception:
+            role = ''
+
+        data = {
+            "user": UserSerializer(user).data,
+            "refresh": str(refresh),
+            "access": access,
+            "role": role,
+        }
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 
 # CRUD de usuarios (protegido, por ejemplo sólo admin)
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('id')
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser]  #solo admin puede cambiar roles/listar
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = []  # no modelos directos, usaremos filter por role con ?role=
+    search_fields = ['username', 'email']
+    ordering_fields = ['id', 'username', 'email']
 
-    @action(detail=True, methods=['post'], permission_classes=[permissions.AllowAny])
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # filtrar por role si se pasa ?role=
+        role_q = self.request.query_params.get('role')
+        if role_q:
+            qs = qs.filter(profile__role=role_q)
+        return qs
+
+    @action(detail=True, methods=['post'])
     def set_role(self, request, pk=None):
-        """Asignar rol a un usuario (solo admin)"""
         user = self.get_object()
-        role = request.data.get("role")
-
+        role = request.data.get('role')
         mapping = {
-            "admin": "Admin",
-            "empleado": "Empleado",
-            "residente": "Residente",
-            "junta": "JuntaDirectiva",
+            'admin': 'Admin',
+            'empleado': 'Empleado',
+            'residente': 'Residente',
+            'junta': 'JuntaDirectiva',
         }
         if role not in mapping:
-            return Response({"detail": "Role inválido"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # quitar roles previos
+            return Response({'detail': 'role inválido'}, status=status.HTTP_400_BAD_REQUEST)
+        # update profile & groups
+        profile, _ = Profile.objects.get_or_create(user=user)
+        profile.role = role
+        profile.save()
         user.groups.clear()
-        # asignar nuevo grupo
         grp, _ = Group.objects.get_or_create(name=mapping[role])
         user.groups.add(grp)
-        # actualizar profile
-        user.profile.role = role
-        user.profile.save()
+        if role == 'admin':
+            user.is_staff = True
+            user.save()
+        return Response({'detail': 'rol actualizado'})
 
-        return Response({"detail": f"Rol de {user.username} actualizado a {role}"})
-
-class IsInRequiredGroup(permissions.BasePermission):
-    def has_permission(self, request, view):
-        required = getattr(view, 'required_groups', None)
-        if not required:
-            return True  # si no hay grupos requeridos, permitir
-        if not request.user or not request.user.is_authenticated:
-            return False
-        user_groups = request.user.groups.values_list('name', flat=True)
-        return any(group in user_groups for group in required)
+# Si quieres mantener un endpoint público para listar solo residentes (por ejemplo), crea otro viewset o view con permisos adecuados.

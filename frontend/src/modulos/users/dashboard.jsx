@@ -14,7 +14,7 @@ export default function KoaLanding() {
       {/* Encabezado */}
       <header className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <figure className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold">
+          <figure className="w-10 h-10 rounded-lg bg-cyan-600 flex items-center justify-center text-white font-bold">
             K
           </figure>
           <div>
@@ -71,7 +71,7 @@ export default function KoaLanding() {
             <div className="mt-8 flex gap-4">
               <a
                 href="#planes"
-                className="inline-block px-6 py-3 rounded-lg bg-indigo-600 text-white font-medium shadow hover:opacity-95"
+                className="inline-block px-6 py-3 rounded-lg bg-cyan-600 text-white font-medium shadow hover:opacity-95"
               >
                 Comenzar ahora
               </a>
@@ -154,7 +154,7 @@ export default function KoaLanding() {
                 <li>• Portal de residentes</li>
                 <li>• Reservas</li>
               </ul>
-              <button className="mt-6 w-full py-2 rounded-lg bg-indigo-600 text-white">
+              <button className="mt-6 w-full py-2 rounded-lg bg-cyan-600 text-white">
                 Contratar
               </button>
             </article>
@@ -168,7 +168,7 @@ export default function KoaLanding() {
                 <li>• Gestión de incidencias avanzada</li>
                 <li>• Integraciones contables</li>
               </ul>
-              <button className="mt-6 w-full py-2 rounded-lg bg-indigo-600 text-white">
+              <button className="mt-6 w-full py-2 rounded-lg bg-cyan-600 text-white">
                 Probar gratis
               </button>
             </article>
@@ -208,7 +208,7 @@ export default function KoaLanding() {
           <div className="flex gap-4">
             <a
               href="#"
-              className="px-4 py-2 rounded-lg bg-indigo-600 text-white"
+              className="px-4 py-2 rounded-lg bg-cyan-600 text-white"
             >
               Solicitar demo
             </a>

@@ -41,11 +41,11 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     'corsheaders',
+    'django_filters',
 
     # Apps locales
     'apps.core',
     'apps.users',
-    'apps.users.apps.UsersConfig',  # para crear grupos por defecto
     'apps.finanzas',
     'apps.comunicaciones',
     'apps.seguridad',
@@ -73,7 +73,10 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
-    )
+    ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
 }
 
 from datetime import timedelta
