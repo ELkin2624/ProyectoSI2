@@ -17,3 +17,14 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} ({self.get_role_display()})"
+
+    @property
+    def group_name(self):
+        """Devuelve el nombre del grupo correspondiente al rol."""
+        mapping = {
+            'admin': 'Admin',
+            'empleado': 'Empleado',
+            'residente': 'Residente',
+            'junta': 'JuntaDirectiva',
+        }
+        return mapping.get(self.role, 'Residente')

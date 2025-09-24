@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework import routers
-from .views import RegisterView, UserViewSet
+from .views import RegisterView, UserViewSet, LogoutView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .token_serializers import MyTokenObtainPairSerializer, EmailTokenObtainPairSerializer
 
@@ -9,7 +9,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
 # Si quieres soportar login por email también:
-class EmailTokenObtainPairView(TokenObtainPairView):
+class EmailTokenObtainPairView(MyTokenObtainPairView):
     serializer_class = EmailTokenObtainPairSerializer
 
 router = routers.DefaultRouter()
@@ -22,5 +22,7 @@ urlpatterns = [
     # endpoint alternativo de login por email (opcional)
     path('auth/login-by-email/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair_email'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # logout (blacklist refresh token) - requiere token_blacklist app activada
+    path('auth/logout/', LogoutView.as_view(), name='auth_logout'),
     path('', include(router.urls)),
 ]

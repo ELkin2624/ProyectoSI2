@@ -4,16 +4,20 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 
 export default function Login() {
-  const [username, setUsername] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // Función de utilidad para detectar si es un email
+  const isEmail = (text) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text);
+
   const validate = () => {
-    if (!username || username.trim().length < 3) {
-      setError("El usuario debe tener al menos 3 caracteres.");
+    // Ajustamos la validación para el nuevo campo 'identifier'
+    if (!identifier || identifier.trim().length === 0) {
+      setError("Por favor, ingresa tu usuario o email.");
       return false;
     }
     if (!password || password.length < 8) {
@@ -40,7 +44,18 @@ export default function Login() {
       setLoading(true);
       setError("");
 
-      const res = await api.post("auth/login/", { username, password });
+      // 2. Lógica para elegir el endpoint y el payload correctos
+      const endpoint = isEmail(identifier)
+        ? "auth/login-by-email/"
+        : "auth/login/";
+        
+      const payload = isEmail(identifier)
+        ? { email: identifier, password }
+        : { username: identifier, password };
+      
+      console.log(`Intentando login en: ${endpoint}`);
+
+      const res = await api.post(endpoint, payload);
 
       // extracción robusta de tokens y role
       const access = res.data?.access ?? res.data?.access_token ?? res.data?.tokens?.access;
@@ -113,16 +128,16 @@ export default function Login() {
               <legend id="credentials-legend" className="sr-only">Credenciales de acceso</legend>
 
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700">Usuario</label>
+                <label htmlFor="identifier" className="block text-sm font-medium text-gray-700">Usuario o Email</label>
                 <input
-                  id="username"
-                  name="username"
+                  id="identifier"
+                  name="identifier"
                   type="text"
-                  autoComplete="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  autoComplete="username email"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   className="mt-1 w-full p-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                  placeholder="Ingresa tu usuario"
+                  placeholder="Ingresa tu usuario o email"
                   required
                 />
               </div>

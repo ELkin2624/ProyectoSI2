@@ -8,13 +8,19 @@ from django.db import IntegrityError, transaction
 @receiver(post_save, sender=User)
 def ensure_profile_and_default_group(sender, instance, created, **kwargs):
     """
-    Asegura que todo User tenga un Profile (get_or_create) y asigna el grupo 'Residente'
-    al crearse un usuario nuevo.
-    get_or_create evita errores de llave duplicada.
+    Solo crear Profile si el User fue creado ahora (created==True).
+    Usamos transaction.atomic() y capturamos IntegrityError para evitar
+    errores de llave duplicada en caso de race condition (admin inline, tests, etc.).
     """
-    profile, created_profile = Profile.objects.get_or_create(user=instance)
     if created:
-        # solo si el usuario fue creado ahora, asignamos el grupo Residente (si existe)
+        try:
+            with transaction.atomic():
+                Profile.objects.create(user=instance)
+        except IntegrityError:
+            # Otro proceso ya creó el profile; no hacemos nada
+            pass
+
+        # asignar grupo por defecto
         try:
             grp, _ = Group.objects.get_or_create(name="Residente")
             instance.groups.add(grp)

@@ -6,6 +6,7 @@ import Login from "../modulos/users/login";            // usar el mismo case que
 import Register from "../modulos/users/registrar";    // si tu fichero se llama registrar.jsx
 import DashResidentes from "../modulos/users/dashresidente";
 import RoleRoute from "../components/RoleRoute";       // nombre correcto
+import AdminUsersDashboard from "../modulos/users/listar"; 
 
 export default function AppRouter() {
   return (
@@ -13,6 +14,11 @@ export default function AppRouter() {
       <Route path="/" element={<KoaLanding />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/admin/users" element={
+        <RoleRoute allowedRoles={['admin']}>
+          <AdminUsersDashboard />
+        </RoleRoute>
+      } />
 
       <Route path="/admin" element={
         <RoleRoute allowedRoles={['admin']}>

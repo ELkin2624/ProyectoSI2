@@ -4,6 +4,8 @@ class IsInRequiredGroup(permissions.BasePermission):
     """
     Uso:
     - en la vista: required_groups = ["Admin", "Empleado"]
+    Permite acceso si el usuario pertenece a cualquier grupo listado en `required_groups`.
+    Si `required_groups` no está definido en la vista, permite acceso (no impone restricción).
     """
 
     def has_permission(self, request, view):

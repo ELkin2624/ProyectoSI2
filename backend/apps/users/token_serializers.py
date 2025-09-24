@@ -1,24 +1,6 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.models import User
-
-class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
-    username_field = 'email'
-
-    def validate(self, attrs):
-        # attrs normalmente contiene 'email' y 'password' si frontend los envía así.
-        credentials = {
-            'username': attrs.get('email'),
-            'password': attrs.get('password')
-        }
-        # buscar usuario por email y usar su username para autenticar
-        try:
-            user = User.objects.get(email=attrs.get('email'))
-            credentials['username'] = user.username
-        except User.DoesNotExist:
-            pass
-
-        return super().validate({'username': credentials['username'], 'password': credentials['password']})
-
+from django.contrib.auth import authenticate
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -37,3 +19,27 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         except Exception:
             data['role'] = ''
         return data
+    
+class EmailTokenObtainPairSerializer(MyTokenObtainPairSerializer):
+    """
+    Permite login usando `email` y `password` en lugar de `username`.
+    Hereda de MyTokenObtainPairSerializer para asegurar que `role` esté en la respuesta.
+    Expectativa del frontend: enviar {'email': '...', 'password': '...'}.
+    """
+
+    # Overriding validate to map email to username transparently
+    def validate(self, attrs):
+        # attrs normalmente contiene {'email': ..., 'password': ...}
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        username = ''
+        if email:
+            try:
+                user = User.objects.get(email__iexact=email)
+                username = user.username
+            except User.DoesNotExist:
+                # dejar username vacío para que el flujo de autenticación falle con credenciales inválidas
+                username = ''
+        # Llamar al super con el dict esperado por TokenObtainPairSerializer
+        return super().validate({'username': username, 'password': password})
