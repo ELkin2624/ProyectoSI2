@@ -6,7 +6,7 @@ import {
   Settings, Bell, User, LogOut
 } from "lucide-react";
 import LogoReact from '../../assets/react.svg';
-
+import AdminUsersDashboard from "./Usuarios"; 
 
 const handleLogout = () => {
   localStorage.removeItem('access_token');
@@ -26,15 +26,6 @@ const Inicio = () => (
   </section>
 );
 
-const Residentes = () => (
-  <section aria-labelledby="residentes-title">
-    <h2 id="residentes-title" className="text-2xl font-bold text-gray-800 mb-4">Gestión de Residentes</h2>
-    <div className="p-6 bg-white rounded-xl shadow-md">
-      <p>Aquí se mostrará la tabla o lista para gestionar a los residentes.</p>
-    </div>
-  </section>
-);
-
 const Reportes = () => (
   <section aria-labelledby="reportes-title">
     <h2 id="reportes-title" className="text-2xl font-bold text-gray-800 mb-4">Reportes y Estadísticas</h2>
@@ -44,14 +35,11 @@ const Reportes = () => (
   </section>
 );
 
-// 1. Array de configuración del sidebar.
-// Lo movemos fuera del componente para que no se re-declare en cada renderizado.
 const sidebarItems = [
   { name: "Inicio", icon: <Home size={22} />, component: <Inicio /> },
-  { name: "Residentes", icon: <Users size={22} />, component: <Residentes /> },
+  { name: "Usuarios", icon: <Users size={22} />, component: <AdminUsersDashboard /> },
   { name: "Reportes", icon: <BarChart2 size={22} />, component: <Reportes /> },
 ];
-
 
 export default function DashAdmin() {
   const [activeItem, setActiveItem] = useState(sidebarItems[0]);

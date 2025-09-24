@@ -6,7 +6,7 @@ import Login from "../modulos/users/login";            // usar el mismo case que
 import Register from "../modulos/users/registrar";    // si tu fichero se llama registrar.jsx
 import DashResidentes from "../modulos/users/dashresidente";
 import RoleRoute from "../components/RoleRoute";       // nombre correcto
-import AdminUsersDashboard from "../modulos/users/listar"; 
+import AdminUsersDashboard from "../modulos/users/Usuarios"; 
 
 export default function AppRouter() {
   return (
