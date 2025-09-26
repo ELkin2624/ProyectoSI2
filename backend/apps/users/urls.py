@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework import routers
-from .views import RegisterView, UserViewSet, LogoutView
+from .views import RegisterView, UserViewSet, LogoutView, EmpleadoViewSet, JuntaDirectivaViewSet, GuardiaViewSet, ChangePasswordView, ProfileView, VehiculoViewSet, ResidentesUnidadViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .token_serializers import MyTokenObtainPairSerializer, EmailTokenObtainPairSerializer
 
@@ -14,15 +14,19 @@ class EmailTokenObtainPairView(MyTokenObtainPairView):
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
+router.register(r'empleados', EmpleadoViewSet, basename='empleado')
+router.register(r'junta', JuntaDirectivaViewSet, basename='junta')
+router.register(r'guardias', GuardiaViewSet, basename='guardia')
+router.register(r'vehiculos', VehiculoViewSet, basename='vehiculo')
+router.register(r'residentes-unidad', ResidentesUnidadViewSet, basename='residentes_unidad')
 
 urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='auth_register'),
-    # endpoint de login (username)
     path('auth/login/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    # endpoint alternativo de login por email (opcional)
     path('auth/login-by-email/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair_email'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    # logout (blacklist refresh token) - requiere token_blacklist app activada
     path('auth/logout/', LogoutView.as_view(), name='auth_logout'),
+    path('auth/change-password/', ChangePasswordView.as_view(), name='change_password'),
+    path('profile/', ProfileView.as_view(), name='profile'),
     path('', include(router.urls)),
 ]

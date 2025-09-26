@@ -39,6 +39,7 @@ INSTALLED_APPS = [
 
     # Apps de terceros
     'rest_framework',
+    'rest_framework_simplejwt',
     'drf_yasg',
     'corsheaders',
     'django_filters',
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
     'apps.core',
     'apps.users',
     'apps.finanzas',
+    'apps.bookings',
     'apps.comunicaciones',
     'apps.seguridad',
     'apps.facilidades',

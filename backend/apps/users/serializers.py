@@ -1,16 +1,20 @@
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
-from .models import Profile
+from .models import Profile, Vehiculo
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+import secrets
+import string
+from apps.facilidades.models import ResidentesUnidad
 
 class UserSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
     phone = serializers.SerializerMethodField()
+    #is_active = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'role', 'phone']
+        fields = ['id', 'username', 'email', 'role', 'phone', 'is_active']
 
     def get_role(self, obj):
         profile = getattr(obj, 'profile', None)
@@ -23,7 +27,6 @@ class UserSerializer(serializers.ModelSerializer):
         if profile:
             return profile.phone
         return None
-
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -57,19 +60,18 @@ class RegisterSerializer(serializers.ModelSerializer):
         # Profile será creado por la señal post_save del User
         return user
       
-
 class AdminUserSerializer(serializers.ModelSerializer):
     """
     Serializer para que el admin cree/edite usuarios y asigne su rol.
+    Exponemos `role` tanto en lectura como en escritura y también `phone`.
     """
     role = serializers.ChoiceField(choices=Profile.ROLE_CHOICES, required=False, write_only=True)
-    # Renombramos 'role_read' a 'role' para consistencia, usando el source.
-    role_display = serializers.CharField(source='profile.role', read_only=True)
     phone = serializers.CharField(source='profile.phone', required=False, allow_blank=True)
+    temp_password = serializers.CharField(read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'is_active', 'is_staff', 'role', 'role_display', 'phone']
+        fields = ['id', 'username', 'email', 'password', 'is_active', 'is_staff', 'role', 'phone', 'temp_password']
         extra_kwargs = {
             'password': {'write_only': True, 'required': False},
             'is_staff': {'required': False},
@@ -108,33 +110,49 @@ class AdminUserSerializer(serializers.ModelSerializer):
             user.is_staff = False
         user.save()
 
+
+    def _generate_temp_password(self, length=10):
+        alphabet = string.ascii_letters + string.digits
+        return ''.join(secrets.choice(alphabet) for i in range(length))
+    
+
     def create(self, validated_data):
+        # role puede venir como campo directo
         role = validated_data.pop('role', None)
-        phone = None
-        if 'profile' in validated_data:
-            # no deberia venir profile directamente, pero por si acaso
-            phone = validated_data['profile'].get('phone')
+        profile_data = validated_data.pop('profile', {}) if 'profile' in validated_data else {}
+        phone = profile_data.get('phone') or validated_data.pop('phone', None)
         password = validated_data.pop('password', None)
-        # Usar create_user para asegurar hashing
-        user = User.objects.create_user(**{k: v for k, v in validated_data.items() if k in ['username', 'email']})
-        # Si hay otros campos como is_active/is_staff los aplicamos
+
+        # Crear user con create_user (si password es None, lo rellenamos temporalmente)
+        if password:
+            user = User.objects.create_user(**{k: v for k, v in validated_data.items() if k in ['username', 'email']}, password=password)
+            temp_password = None
+        else:
+            # generar contraseña temporal segura
+            temp_password = self._generate_temp_password()
+            user = User.objects.create_user(**{k: v for k, v in validated_data.items() if k in ['username', 'email']}, password=temp_password)
+
+        # aplicar is_active/is_staff si se pasaron
         for attr in ['is_active', 'is_staff']:
             if attr in validated_data:
                 setattr(user, attr, validated_data.get(attr))
-        if password:
-            user.set_password(password)
-            user.save()
+        user.save()
 
-        # Asignar role y group
+        # Asignar role y grupo
         if role is None:
             role = 'residente'
-        self._assign_role_and_group(user, role, phone=validated_data.get('phone'))
+        self._assign_role_and_group(user, role, phone=phone)
+
+        # Adjuntamos temp_password en instancia del serializer para que la vista lo use si lo necesita
+        user._temp_password = temp_password
         return user
+
 
     def update(self, instance, validated_data):
         role = validated_data.pop('role', None)
         password = validated_data.pop('password', None)
-        phone = validated_data.pop('phone', None)
+        profile_data = validated_data.pop('profile', {}) if 'profile' in validated_data else {}
+        phone = profile_data.get('phone', None) or validated_data.pop('phone', None)
 
         # Actualizar campos básicos del User (sin password)
         for attr, value in validated_data.items():
@@ -154,3 +172,33 @@ class AdminUserSerializer(serializers.ModelSerializer):
             self._assign_role_and_group(instance, role or instance.profile.role, phone=phone)
 
         return instance
+    
+class ProfileSerializer(serializers.ModelSerializer):
+    role = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ['role', 'phone']
+
+    def get_role(self, obj):
+        return obj.role
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True, required=True)
+    new_password = serializers.CharField(write_only=True, required=True)
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
+    
+class VehiculoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vehiculo
+        fields = '__all__'
+        ref_name = "VehiculoUserSerializer"
+
+class ResidentesUnidadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ResidentesUnidad
+        fields = '__all__'
+        ref_name = "ResidentesUnidadUserSerializer"

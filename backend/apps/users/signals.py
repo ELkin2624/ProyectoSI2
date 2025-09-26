@@ -29,6 +29,6 @@ def ensure_profile_and_default_group(sender, instance, created, **kwargs):
 
 @receiver(post_migrate)
 def create_default_groups(sender, **kwargs):
-    grupos = ['Admin', 'Empleado', 'Residente', 'JuntaDirectiva']
+    grupos = ['Admin', 'Empleado', 'Residente', 'JuntaDirectiva', 'Guardia']
     for g in grupos:
         Group.objects.get_or_create(name=g)

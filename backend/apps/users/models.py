@@ -1,14 +1,19 @@
 from django.db import models
-
-# Create your models here.
+from apps.core.models import BaseModel
 from django.contrib.auth.models import User
+from apps.facilidades.models import Unidad, ResidentesUnidad
+
+import uuid
+from django.conf import settings
 
 class Profile(models.Model):
+    """Modelo para almacenar información adicional del usuario."""
     ROLE_CHOICES = [
         ('admin', 'Administrador'),
         ('empleado', 'Empleado'),
         ('residente', 'Residente'),
         ('junta', 'Junta Directiva'),
+        ('guardia', 'Guardia'),
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
@@ -26,5 +31,24 @@ class Profile(models.Model):
             'empleado': 'Empleado',
             'residente': 'Residente',
             'junta': 'JuntaDirectiva',
+            'guardia': 'Guardia',
         }
         return mapping.get(self.role, 'Residente')
+    
+    
+class Vehiculo(BaseModel):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name="vehiculos")
+    unidad = models.ForeignKey(Unidad, on_delete=models.CASCADE, related_name="vehiculos")
+    placa = models.CharField(max_length=20, unique=True)
+    marca = models.CharField(max_length=50, blank=True, null=True)
+    modelo = models.CharField(max_length=50, blank=True, null=True)
+    color = models.CharField(max_length=30, blank=True, null=True)
+    foto_url = models.TextField(blank=True, null=True)
+
+    class Meta:
+        db_table = "vehiculos"
+        verbose_name = "Vehículo"
+        verbose_name_plural = "Vehículos"
+
+    def __str__(self):
+        return f"{self.placa} - {self.usuario.username}"

@@ -1,15 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Trash, Edit2, PlusCircle, Search, Check, X } from "lucide-react";
-import api from "../../services/api"; // ajusta la ruta si tu proyecto la tiene en otro sitio
+import api from "../../services/api"; 
 
-// ADMIN USERS DASHBOARD
-// - Un solo archivo React listo para copiar a: src/pages/AdminUsersDashboard.jsx
-// - TailwindCSS (usa la paleta cyan/teal). Responsive y accesible.
-// - Dependencias sugeridas: lucide-react (icons). Ya necesitas axios en src/services/api.js
 // - CRUD: conectar a endpoints REST (GET /users/, POST /users/, PUT /users/:id, DELETE /users/:id)
-
-// USAGE
-// Importa y añade la ruta: <Route path="/admin/users" element={<AdminUsersDashboard/>} />
 
 /*
   NOTAS RÁPIDAS SOBRE ENDPOINTS (ajusta si tu backend usa otro path/shape):

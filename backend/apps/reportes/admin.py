@@ -1,3 +1,7 @@
 from django.contrib import admin
+from .models import ReporteMorosidad
 
-# Register your models here.
+@admin.register(ReporteMorosidad)
+class ReporteMorosidadAdmin(admin.ModelAdmin):
+    list_display = ("condominio", "generado_en")
+

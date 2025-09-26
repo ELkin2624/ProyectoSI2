@@ -1,5 +1,4 @@
 // src/modulos/users/DashAdmin.jsx
-
 import { useState } from "react";
 import {
   Home, Users, BarChart2, Search, HelpCircle, 
@@ -7,16 +6,29 @@ import {
 } from "lucide-react";
 import LogoReact from '../../assets/react.svg';
 import AdminUsersDashboard from "./Usuarios"; 
+import api from '../../services/api';
 
-const handleLogout = () => {
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
-  window.location.href = '/login'; // o useNavigate para redirigir
+const handleLogout = async () => {
+  const refresh = localStorage.getItem('refresh_token');
+  try {
+    if (refresh) {
+      await api.post('auth/logout/', { refresh }); 
+      console.log("Llamada a la API para hacer logout...");
+    }
+  } catch (err) {
+    console.warn('Logout backend falló (ignorado):', err);
+  } finally {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('role');
+    if (api?.defaults?.headers?.common) {
+      api.defaults.headers.common['Authorization'] = null;
+    }    
+    window.location.href = '/login';
+  }
 };
 
 // --- Módulos del Dashboard ---
-// NOTA: En una aplicación real, cada uno de estos componentes debería estar en su propio archivo
-// y ser importado aquí. Por ejemplo: import Inicio from './modulos/Inicio';
 const Inicio = () => (
   <section aria-labelledby="inicio-title">
     <h2 id="inicio-title" className="text-2xl font-bold text-gray-800 mb-4">Dashboard de Inicio</h2>
@@ -49,11 +61,11 @@ export default function DashAdmin() {
       
       {/* Sidebar: Menú de navegación principal */}
       <aside 
-        className="w-20 md:w-60 bg-indigo-600 text-white flex flex-col shadow-lg transition-all duration-300"
+        className="w-20 md:w-60 bg-cyan-600 text-white flex flex-col shadow-lg transition-all duration-300"
         aria-label="Menú lateral principal"
       >
         {/* Logo */}
-        <header className="flex items-center justify-center gap-2 px-4 py-6 border-b border-indigo-700">
+        <header className="flex items-center justify-center gap-2 px-4 py-6 border-b border-cyan-700">
           <img src={LogoReact} alt="Logo Koa" className="h-9 w-9" />
           <span className="hidden md:block font-bold text-xl text-white">Koa</span>
         </header>
@@ -67,7 +79,7 @@ export default function DashAdmin() {
               className={`flex items-center justify-center md:justify-start gap-3 rounded-md px-3 py-3 text-sm font-medium transition-colors duration-200 ${
                 activeItem.name === item.name 
                   ? "bg-amber-500 text-white shadow-md" 
-                  : "text-indigo-200 hover:bg-indigo-700 hover:text-white"
+                  : "text-cyan-200 hover:bg-cyan-700 hover:text-white"
               }`}
               onClick={() => setActiveItem(item)}
               aria-current={activeItem.name === item.name ? "page" : undefined}
@@ -83,7 +95,7 @@ export default function DashAdmin() {
           <button
             onClick={handleLogout}
             title="Cerrar Sesión"
-            className="w-full flex items-center justify-center md:justify-start gap-3 rounded-md px-3 py-3 text-sm font-medium text-indigo-200 hover:bg-indigo-700 hover:text-white transition-colors duration-200"
+            className="w-full flex items-center justify-center md:justify-start gap-3 rounded-md px-3 py-3 text-sm font-medium text-cyan-200 hover:bg-cyan-700 hover:text-white transition-colors duration-200"
           >
             <LogOut size={22} />
             <span className="hidden md:block">Cerrar Sesión</span>
@@ -120,7 +132,7 @@ export default function DashAdmin() {
                 <button aria-label="Ayuda" className="p-2 rounded-full hover:bg-gray-100 transition-colors"><HelpCircle size={22} /></button>
                 <button aria-label="Configuración" className="p-2 rounded-full hover:bg-gray-100 transition-colors"><Settings size={22} /></button>
                 <button aria-label="Notificaciones" className="p-2 rounded-full hover:bg-gray-100 transition-colors"><Bell size={22} /></button>
-                <button aria-label="Perfil de usuario" className="p-1 rounded-full hover:ring-2 hover:ring-indigo-400 transition-all">
+                <button aria-label="Perfil de usuario" className="p-1 rounded-full hover:ring-2 hover:ring-cyan-400 transition-all">
                   <User className="h-8 w-8 rounded-full bg-indigo-200 text-indigo-600 p-1" />
                 </button>
               </div>
