@@ -25,10 +25,10 @@ class UnidadViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['condominio', 'tipo', 'estado']
-    search_fields = ['numero_unidad']
+    search_fields = ['numero_unidad', 'condominio']
 
 class ResidentesUnidadViewSet(viewsets.ModelViewSet):
-    queryset = ResidentesUnidad.objects.select_related('unidad', 'usuario').all()
+    queryset = ResidentesUnidad.objects.select_related('unidad__condominio', 'usuario').all()
     serializer_class = ResidentesUnidadSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]

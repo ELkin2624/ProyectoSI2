@@ -55,7 +55,6 @@ class Condominio(BaseModel):
     def __str__(self):
         return self.nombre
 
-
 class Unidad(BaseModel):
     condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, related_name="unidades")
     numero_unidad = models.TextField()
@@ -75,7 +74,6 @@ class Unidad(BaseModel):
     def __str__(self):
         return f"{self.condominio.nombre} - {self.numero_unidad}"
 
-
 class ResidentesUnidad(BaseModel):
     unidad = models.ForeignKey(Unidad, on_delete=models.CASCADE, related_name="residentes_unidad")
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="residencias")
@@ -89,7 +87,6 @@ class ResidentesUnidad(BaseModel):
         verbose_name = "Residente de unidad"
         verbose_name_plural = "Residentes por unidad"
         indexes = [models.Index(fields=["unidad", "usuario"])]
-
 
 class Instalacion(BaseModel):
     condominio = models.ForeignKey(Condominio, on_delete=models.CASCADE, related_name="instalaciones")
@@ -105,7 +102,6 @@ class Instalacion(BaseModel):
 
     def __str__(self):
         return f"{self.nombre} ({self.condominio.nombre})"
-
 
 class Reserva(BaseModel):
     instalacion = models.ForeignKey(Instalacion, on_delete=models.CASCADE, related_name="reservas")

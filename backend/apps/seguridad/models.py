@@ -13,7 +13,6 @@ from apps.users.models import Vehiculo
     modelo = models.CharField(max_length=50, null=True, blank=True)
     color = models.CharField(max_length=30, null=True, blank=True)
     foto_url = models.TextField(null=True, blank=True)
-    ref_name = "vehiculos_seguridad"
 
     class Meta:
         db_table = "vehiculos"
@@ -124,3 +123,5 @@ class DeteccionRostro(BaseModel):
 
     def __str__(self):
         return f"Rostro detectado en {self.condominio.nombre} (confianza {self.confianza}%)"
+
+#hola como estas
