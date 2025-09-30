@@ -1,8 +1,12 @@
 from django.urls import path, include
 from rest_framework import routers
-from .views import RegisterView, UserViewSet, LogoutView, EmpleadoViewSet, JuntaDirectivaViewSet, GuardiaViewSet, ChangePasswordView, ProfileView, VehiculoViewSet, ResidentesUnidadViewSet
+from .views import (RegisterView, UserViewSet, LogoutView, 
+    EmpleadoViewSet, JuntaDirectivaViewSet, GuardiaViewSet, 
+    ChangePasswordView, ProfileView, VehiculoViewSet, ResidentesUnidadViewSet,
+)
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .token_serializers import MyTokenObtainPairSerializer, EmailTokenObtainPairSerializer
+from .views_face import FaceRegisterView, FaceLoginView
 
 # Views que usan tus serializers custom
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -28,5 +32,7 @@ urlpatterns = [
     path('auth/logout/', LogoutView.as_view(), name='auth_logout'),
     path('auth/change-password/', ChangePasswordView.as_view(), name='change_password'),
     path('profile/', ProfileView.as_view(), name='profile'),
+    path("face/register/", FaceRegisterView.as_view(), name="face-register"),
+    path("face/login/", FaceLoginView.as_view(), name="face-login"),
     path('', include(router.urls)),
 ]

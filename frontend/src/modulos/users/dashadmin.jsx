@@ -2,13 +2,13 @@ import React, { useState, Suspense, lazy } from "react";
 import {
   Home, Users, Building, CalendarCheck, AlertTriangle, 
   FileText, Search, Settings, Bell, LogOut, DollarSign,
-  ClipboardList, Shield
+  ClipboardList, Shield, Bot
 } from "lucide-react";
 import api from '../../services/api';
 import MenuHorizontal from "../../components/MenuHorizontal"; 
 
 const Inicio = lazy(() => import("./Inicio"));
-const AdminUsersDashboard = lazy(() => import("./Usuarios"));
+const AdminUsersDashboard = lazy (() => import("./admin/AdminUsersDashboard"))
 
 const Condominios = lazy(() => import("../facilidades/Condominios"));
 const Unidades = lazy(() => import("../facilidades/Unidades"));
@@ -98,7 +98,7 @@ const sidebarItems = [
       { name: "Alertas de pánico", component: <AlertasPanicoPage /> },
       { name: "Detecciones", component: <DeteccionesPage /> },
     ]
-  }
+  },
 ];
 
 export default function DashAdmin() {

@@ -8,7 +8,6 @@ class IsInRequiredGroup(permissions.BasePermission):
       - o como atributo en la vista llamado required_groups_map[action] (seteado en get_permissions)
     Si no hay required_groups definido, permite acceso (comportamiento permisivo por defecto).
     """
-
     def has_permission(self, request, view):
         required = getattr(view, "required_groups", None)
         if not required:

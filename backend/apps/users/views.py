@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status, permissions, generics, filters
+from rest_framework import viewsets, status, permissions, generics, filters, parsers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -14,7 +14,6 @@ from apps.facilidades.models import ResidentesUnidad
 from .serializers import ChangePasswordSerializer, ProfileSerializer, VehiculoSerializer
 from apps.facilidades.serializers import ResidentesUnidadSerializer
 
-# Registrar usuarios (público)
 class RegisterView(generics.CreateAPIView):
     """
     Registro público: crea User + Profile (por el serializer) y devuelve tokens JWT + role.
@@ -74,6 +73,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.all().order_by('id')
     serializer_class = UserSerializer
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['profile__role', 'is_active']   # filtros útiles
     search_fields = ['username', 'email']
@@ -109,10 +109,8 @@ class UserViewSet(viewsets.ModelViewSet):
         # Definir required_groups segun map
         required = self.required_groups_map.get(self.action)
         if required:
-            # Setearlo en la vista para que IsInRequiredGroup lo lea
             self.required_groups = required
             return [IsInRequiredGroup()]
-        # Default a admin si no se definió explicitamente
         self.required_groups = ['Admin']
         return [IsInRequiredGroup()]
 
@@ -184,6 +182,7 @@ class ProfileView(generics.RetrieveUpdateAPIView):
     """
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser, parsers.JSONParser]
 
     def get_object(self):
         return self.request.user.profile
@@ -203,4 +202,3 @@ class ResidentesUnidadViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ["unidad", "usuario", "rol", "es_principal"]
     search_fields = ["unidad__numero_unidad", "usuario__username", "usuario__email"]
-

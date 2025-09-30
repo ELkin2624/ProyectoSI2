@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import FaceLoginModal from "./FaceLoginModal";
 
 export default function Login() {
   const [identifier, setIdentifier] = useState("");
@@ -9,6 +10,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [faceModalOpen, setFaceModalOpen] = useState(false);
   const navigate = useNavigate();
 
   // Función de utilidad para detectar si es un email
@@ -30,9 +32,7 @@ export default function Login() {
 
   const redirectByRole = (role) => {
     if (role === "admin") navigate("/admin");
-    //else if (role === "empleado") navigate("/empleado");
     else if (role === "residente") navigate("/residente");
-    //else if (role === "junta") navigate("/junta");
     else navigate("/");
   };
 
@@ -183,6 +183,16 @@ export default function Login() {
                 )}
                 <span>{loading ? 'Ingresando...' : 'Ingresar'}</span>
               </button>
+              
+              <button
+                type="button"
+                onClick={() => setFaceModalOpen(true)}
+                className="ml-3 px-3 py-2 border rounded bg-white"
+              >
+                Ingresar con rostro
+              </button>
+
+              {faceModalOpen && <FaceLoginModal onClose={() => setFaceModalOpen(false)} />}
 
               <Link to="/forgot" className="ml-4 text-sm text-gray-600 hover:underline">¿Olvidaste tu contraseña?</Link>
             </div>

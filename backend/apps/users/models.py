@@ -2,12 +2,18 @@ from django.db import models
 from apps.core.models import BaseModel
 from django.contrib.auth.models import User
 from apps.facilidades.models import Unidad, ResidentesUnidad
+from django.contrib.postgres.fields import ArrayField
 
-import uuid
+import uuid, os
 from django.conf import settings
 
+def profile_photo_upload_to(instance, filename):
+    base, ext = os.path.splitext(filename)
+    new_name = f"{uuid.uuid4().hex}{ext.lower()}"
+    user_part = str(instance.user.id) if instance.user else uuid.uuid4().hex
+    return os.path.join('profile_photos', user_part, new_name)
+
 class Profile(models.Model):
-    """Modelo para almacenar información adicional del usuario."""
     ROLE_CHOICES = [
         ('admin', 'Administrador'),
         ('empleado', 'Empleado'),
@@ -18,10 +24,12 @@ class Profile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="residente")
-    phone = models.CharField(max_length=20, blank=True, null=True)  # campo extra de ejemplo
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    foto = models.ImageField(upload_to=profile_photo_upload_to, null=True, blank=True)
+    embedding = ArrayField(models.FloatField(), null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user.username} ({self.get_role_display()})"
+        return self.user.username
 
     @property
     def group_name(self):
@@ -34,8 +42,7 @@ class Profile(models.Model):
             'guardia': 'Guardia',
         }
         return mapping.get(self.role, 'Residente')
-    
-    
+      
 class Vehiculo(BaseModel):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name="vehiculos")
     unidad = models.ForeignKey(Unidad, on_delete=models.CASCADE, related_name="vehiculos")

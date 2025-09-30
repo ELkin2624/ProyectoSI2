@@ -11,10 +11,11 @@ class UserSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
     phone = serializers.SerializerMethodField()
     #is_active = serializers.BooleanField(read_only=True)
+    foto_url = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'role', 'phone', 'is_active']
+        fields = ['id', 'username', 'email', 'role', 'phone', 'is_active', 'foto_url']
 
     def get_role(self, obj):
         profile = getattr(obj, 'profile', None)
@@ -26,6 +27,15 @@ class UserSerializer(serializers.ModelSerializer):
         profile = getattr(obj, 'profile', None)
         if profile:
             return profile.phone
+        return None
+    
+    def get_foto_url(self, obj):
+        profile = getattr(obj, 'profile', None)
+        request = self.context.get('request') if hasattr(self, 'context') else None
+        if profile and profile.foto:
+            if request:
+                return request.build_absolute_uri(profile.foto.url)
+            return profile.foto.url
         return None
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -68,10 +78,11 @@ class AdminUserSerializer(serializers.ModelSerializer):
     role = serializers.ChoiceField(choices=Profile.ROLE_CHOICES, required=False, write_only=True)
     phone = serializers.CharField(source='profile.phone', required=False, allow_blank=True)
     temp_password = serializers.CharField(read_only=True)
+    foto = serializers.ImageField(source='profile.foto', required=False, allow_null=True)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'is_active', 'is_staff', 'role', 'phone', 'temp_password']
+        fields = ['id', 'username', 'email', 'password', 'is_active', 'is_staff', 'role', 'phone', 'temp_password', 'foto']
         extra_kwargs = {
             'password': {'write_only': True, 'required': False},
             'is_staff': {'required': False},
@@ -88,12 +99,14 @@ class AdminUserSerializer(serializers.ModelSerializer):
         return value
 
 
-    def _assign_role_and_group(self, user, role, phone=None):
+    def _assign_role_and_group(self, user, role, phone=None, foto=None):
         """Método privado para asignar rol y grupo. También actualiza phone si se pasa."""
         profile, _ = Profile.objects.get_or_create(user=user)
         profile.role = role or profile.role
         if phone is not None:
             profile.phone = phone
+        if foto is not None:
+            profile.foto = foto
         profile.save()
 
         grp_name = profile.group_name
@@ -122,13 +135,12 @@ class AdminUserSerializer(serializers.ModelSerializer):
         profile_data = validated_data.pop('profile', {}) if 'profile' in validated_data else {}
         phone = profile_data.get('phone') or validated_data.pop('phone', None)
         password = validated_data.pop('password', None)
+        foto = profile_data.get('foto') or validated_data.pop('foto', None)
 
-        # Crear user con create_user (si password es None, lo rellenamos temporalmente)
         if password:
             user = User.objects.create_user(**{k: v for k, v in validated_data.items() if k in ['username', 'email']}, password=password)
             temp_password = None
         else:
-            # generar contraseña temporal segura
             temp_password = self._generate_temp_password()
             user = User.objects.create_user(**{k: v for k, v in validated_data.items() if k in ['username', 'email']}, password=temp_password)
 
@@ -138,10 +150,9 @@ class AdminUserSerializer(serializers.ModelSerializer):
                 setattr(user, attr, validated_data.get(attr))
         user.save()
 
-        # Asignar role y grupo
         if role is None:
             role = 'residente'
-        self._assign_role_and_group(user, role, phone=phone)
+        self._assign_role_and_group(user, role, phone=phone, foto=foto)
 
         # Adjuntamos temp_password en instancia del serializer para que la vista lo use si lo necesita
         user._temp_password = temp_password
@@ -153,6 +164,7 @@ class AdminUserSerializer(serializers.ModelSerializer):
         password = validated_data.pop('password', None)
         profile_data = validated_data.pop('profile', {}) if 'profile' in validated_data else {}
         phone = profile_data.get('phone', None) or validated_data.pop('phone', None)
+        foto = profile_data.get('foto', None) or validated_data.pop('foto', None)
 
         # Actualizar campos básicos del User (sin password)
         for attr, value in validated_data.items():
@@ -168,20 +180,28 @@ class AdminUserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
             instance.save()
 
-        if role or phone is not None:
-            self._assign_role_and_group(instance, role or instance.profile.role, phone=phone)
+        if role or phone is not None or foto is not None:
+            self._assign_role_and_group(instance, role or instance.profile.role, phone=phone, foto=foto)
 
         return instance
     
 class ProfileSerializer(serializers.ModelSerializer):
-    role = serializers.SerializerMethodField(read_only=True)
+    #role = serializers.SerializerMethodField(read_only=True)
+    #foto = serializers.ImageField(required=False, allow_null=True)
+    foto_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
-        fields = ['role', 'phone']
+        fields = ['role', 'phone', 'foto', 'foto_url', 'embedding']
+        extra_kwargs = {
+            'embedding': {'read_only': True}
+        }
 
-    def get_role(self, obj):
-        return obj.role
+    def get_foto_url(self, obj):
+        request = self.context.get('request')
+        if obj.foto and request:
+            return request.build_absolute_uri(obj.foto.url)
+        return None
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True, required=True)
