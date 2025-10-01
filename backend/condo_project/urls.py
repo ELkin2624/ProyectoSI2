@@ -29,7 +29,6 @@ urlpatterns = [
     path('api/comunicaciones/', include('apps.comunicaciones.urls')),
     path('api/seguridad/', include('apps.seguridad.urls')),
     path('api/bookings/', include('apps.bookings.urls')),
-    path('api/ia/', include('apps.ia.urls')),
     path('api/reportes/', include('apps.reportes.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

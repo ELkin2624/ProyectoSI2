@@ -53,7 +53,6 @@ INSTALLED_APPS = [
     'apps.seguridad',
     'apps.facilidades',
     'apps.reportes',
-    'apps.ia',
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True  # sólo para desarrollo; en producción configura CORS_ALLOWED_ORIGINS
