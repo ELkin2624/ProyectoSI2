@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 from rest_framework import serializers
 from .models import Profile, Vehiculo
 from django.contrib.auth.password_validation import validate_password
@@ -7,10 +7,13 @@ import secrets
 import string
 from apps.facilidades.models import ResidentesUnidad
 
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 class UserSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
     phone = serializers.SerializerMethodField()
-    #is_active = serializers.BooleanField(read_only=True)
     foto_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -67,7 +70,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         email = validated_data.get('email')
         password = validated_data.pop("password")
         user = User.objects.create_user(username=username, email=email, password=password)
-        # Profile será creado por la señal post_save del User
         return user
       
 class AdminUserSerializer(serializers.ModelSerializer):
@@ -203,14 +205,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.foto.url)
         return None
 
-class ChangePasswordSerializer(serializers.Serializer):
-    old_password = serializers.CharField(write_only=True, required=True)
-    new_password = serializers.CharField(write_only=True, required=True)
-
-    def validate_new_password(self, value):
-        validate_password(value)
-        return value
-    
 class VehiculoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vehiculo
@@ -222,3 +216,18 @@ class ResidentesUnidadSerializer(serializers.ModelSerializer):
         model = ResidentesUnidad
         fields = '__all__'
         ref_name = "ResidentesUnidadUserSerializer"
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True, required=True)
+    new_password = serializers.CharField(write_only=True, required=True)
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
+    
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    password = serializers.CharField(write_only=True, min_length=6)

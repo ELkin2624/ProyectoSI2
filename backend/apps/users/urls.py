@@ -3,6 +3,7 @@ from rest_framework import routers
 from .views import (RegisterView, UserViewSet, LogoutView, 
     EmpleadoViewSet, JuntaDirectivaViewSet, GuardiaViewSet, 
     ChangePasswordView, ProfileView, VehiculoViewSet, ResidentesUnidadViewSet,
+    ForgotPasswordView, ResetPasswordView
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .token_serializers import MyTokenObtainPairSerializer, EmailTokenObtainPairSerializer
@@ -34,5 +35,7 @@ urlpatterns = [
     path('profile/', ProfileView.as_view(), name='profile'),
     path("face/register/", FaceRegisterView.as_view(), name="face-register"),
     path("face/login/", FaceLoginView.as_view(), name="face-login"),
+    path("forgot-password/", ForgotPasswordView.as_view(), name="forgot-password"),
+    path("reset-password/<uidb64>/<token>/", ResetPasswordView.as_view(), name="reset-password"),
     path('', include(router.urls)),
 ]

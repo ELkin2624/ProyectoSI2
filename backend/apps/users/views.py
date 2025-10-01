@@ -2,7 +2,7 @@ from rest_framework import viewsets, status, permissions, generics, filters, par
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 from .serializers import UserSerializer, RegisterSerializer, AdminUserSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Profile, Vehiculo
@@ -11,8 +11,21 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from apps.facilidades.models import ResidentesUnidad
-from .serializers import ChangePasswordSerializer, ProfileSerializer, VehiculoSerializer
 from apps.facilidades.serializers import ResidentesUnidadSerializer
+
+from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.core.mail import send_mail, BadHeaderError
+from django.conf import settings
+from django.contrib.auth import get_user_model
+
+from .serializers import (ChangePasswordSerializer, ProfileSerializer, 
+    VehiculoSerializer, ForgotPasswordSerializer, ResetPasswordSerializer
+)
+
+User = get_user_model()
 
 class RegisterView(generics.CreateAPIView):
     """
@@ -202,3 +215,60 @@ class ResidentesUnidadViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ["unidad", "usuario", "rol", "es_principal"]
     search_fields = ["unidad__numero_unidad", "usuario__username", "usuario__email"]
+
+
+class ForgotPasswordView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            # Para no filtrar si el email está en la DB, podrías devolver 200 y un mensaje genérico.
+            return Response({"error": "El email no está registrado."}, status=status.HTTP_400_BAD_REQUEST)
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+
+        frontend = getattr(settings, "FRONTEND_URL", "http://localhost:5173")
+        reset_link = f"{frontend.rstrip('/')}/reset-password/{uid}/{token}"
+
+        subject = "Recupera tu contraseña"
+        message = f"Para restablecer tu contraseña haz clic aquí: {reset_link}\n\nSi no solicitaste este cambio, ignora este correo."
+        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", settings.EMAIL_HOST_USER)
+
+        try:
+            send_mail(subject, message, from_email, [email], fail_silently=False)
+        except BadHeaderError:
+            return Response({"error": "Cabecera de email inválida."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            # Loguear e informar error genérico
+            return Response({"error": "No se pudo enviar el correo. Revisa la configuración del servidor de correo.", "detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({"message": "Se ha enviado un enlace a tu correo."}, status=status.HTTP_200_OK)
+
+
+class ResetPasswordView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, uidb64, token):
+        serializer = ResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (User.DoesNotExist, ValueError, TypeError):
+            return Response({"error": "Enlace inválido."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not default_token_generator.check_token(user, token):
+            return Response({"error": "Token inválido o expirado."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(serializer.validated_data["password"])
+        user.save()
+
+        return Response({"message": "Contraseña restablecida con éxito."}, status=status.HTTP_200_OK)
